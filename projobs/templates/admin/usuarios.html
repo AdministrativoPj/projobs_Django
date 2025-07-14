@@ -1,0 +1,60 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block content %}
+<div class="admin-container">
+  <h2>Gestión de Usuarios</h2>
+
+  {% for message in messages %}
+    <div class="msg">{{ message }}</div>
+  {% endfor %}
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.nombre }} {{ u.apellido }}</td>
+          <td>{{ u.correo }}</td>
+          <td>{{ u.get_rol_display }}</td>
+          <td>
+            <form method="post" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="user_id" value="{{ u.id }}">
+              <button type="submit" name="accion" value="eliminar" onclick="return confirm('¿Eliminar usuario?')">🗑️</button>
+            </form>
+            <form method="post" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="user_id" value="{{ u.id }}">
+              <select name="accion" onchange="this.form.submit()">
+                <option disabled selected>📂 Cambiar Rol</option>
+                <option value="rol_1">Admin</option>
+                <option value="rol_2">Cliente</option>
+                <option value="rol_3">Trabajador</option>
+              </select>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No hay usuarios registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+<style>
+.admin-container { max-width: 1000px; margin: 0 auto; }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th, .admin-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+.admin-table th { background: #f0f0f0; }
+</style>

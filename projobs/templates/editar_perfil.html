@@ -1,0 +1,89 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/style_editar_perfil.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="profile-edit-wrapper">
+  <div class="profile-card">
+
+    <div class="avatar-section">
+      <label for="foto" class="avatar-label">
+        {% if usuario.foto and usuario.foto.url %}
+          <img src="{{ usuario.foto.url }}?v={{ usuario.id }}" id="preview-img" alt="Foto actual">
+        {% else %}
+          <img src="{% static 'img/avatar-placeholder.png' %}" id="preview-img" alt="Foto default">
+        {% endif %}
+      </label>
+    </div>
+
+    {% if mensaje %}
+      <div class="live-message success-message">
+        {{ mensaje }}
+      </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="profile-form">
+      {% csrf_token %}
+
+      <!-- ✅ Input visible para cargar nueva imagen -->
+      <div class="form-field">
+        <label for="foto">Cambiar foto de perfil</label>
+        <input type="file" name="foto" id="foto" accept="image/*" style="display: block; margin-top: 8px;">
+      </div>
+
+      <div class="form-field">
+        <label>Nombre</label>
+        <input type="text" name="nombre" value="{{ usuario.nombre }}" required>
+      </div>
+
+      <div class="form-field">
+        <label>Apellido</label>
+        <input type="text" name="apellido" value="{{ usuario.apellido }}" required>
+      </div>
+
+      <div class="form-field">
+        <label>Correo</label>
+        <input type="email" name="correo" value="{{ usuario.correo }}" required>
+      </div>
+
+      <div class="form-field">
+        <label>Contraseña (opcional)</label>
+        <input type="password" name="password" placeholder="••••••••">
+      </div>
+
+      <div class="form-field">
+        <label>Rol</label>
+        <select name="rol" required>
+          <option value="2" {% if usuario.rol == 2 %}selected{% endif %}>Cliente</option>
+          <option value="3" {% if usuario.rol == 3 %}selected{% endif %}>Trabajador</option>
+        </select>
+      </div>
+
+      <button type="submit" class="save-button">Guardar cambios</button>
+    </form>
+  </div>
+</section>
+
+<script>
+  const inputFoto = document.getElementById('foto');
+  const preview = document.getElementById('preview-img');
+  inputFoto.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      console.log("Imagen seleccionada:", file.name);
+      preview.src = URL.createObjectURL(file);
+    }
+  });
+</script>
+ <script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {
+      e.preventDefault();
+    }
+  });
+</script>
+{% endblock %}

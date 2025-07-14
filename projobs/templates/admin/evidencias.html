@@ -1,0 +1,51 @@
+{% extends 'baseperfil.html' %}
+
+{% block title %}Evidencias - Admin{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-10">
+    <h2 class="text-3xl font-bold mb-8 text-center">Evidencias Subidas</h2>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded shadow">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-3 px-6 text-left">Trabajador</th>
+                    <th class="py-3 px-6 text-left">Oferta</th>
+                    <th class="py-3 px-6 text-left">Descripción</th>
+                    <th class="py-3 px-6 text-left">Archivo</th>
+                    <th class="py-3 px-6 text-left">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in evidencias %}
+                <tr class="border-b">
+                    <td class="py-3 px-6">{{ e.trabajador.nombre }} {{ e.trabajador.apellido }}</td>
+                    <td class="py-3 px-6">{{ e.postulacion.oferta.titulo }}</td>
+                    <td class="py-3 px-6">{{ e.descripcion }}</td>
+                    <td class="py-3 px-6">
+                        {% if e.archivo %}
+                            <a href="{{ e.archivo.url }}" target="_blank" class="text-blue-600 hover:underline">Ver archivo</a>
+                        {% else %}
+                            Sin archivo
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-6">
+                        <form action="{% url 'admin_eliminar_evidencia' e.id %}" method="post" onsubmit="return confirm('¿Eliminar esta evidencia?')">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-600 hover:text-red-800 font-semibold">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-6 text-center">No hay evidencias registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

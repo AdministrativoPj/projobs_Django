@@ -1,0 +1,22 @@
+{% extends 'baseperfil.html' %}
+
+{% block title %}Chat Detalle{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-10">
+    <h2 class="text-3xl font-bold mb-6 text-center">
+        Conversación entre {{ user1.nombre }} {{ user1.apellido }} 
+        y {{ user2.nombre }} {{ user2.apellido }}
+    </h2>
+    <div class="bg-white rounded shadow p-6 max-w-3xl mx-auto">
+        {% for m in mensajes %}
+            <div class="mb-4">
+                <strong>{{ m.emisor.nombre }}:</strong> {{ m.contenido }}
+                <div class="text-xs text-gray-500">{{ m.fecha_envio }}</div>
+            </div>
+        {% empty %}
+            <p>No hay mensajes en este chat.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

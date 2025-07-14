@@ -1,0 +1,48 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block title %}Admin Postulaciones{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8">
+    <h2 class="text-3xl font-bold mb-6 text-center">Administrar Postulaciones</h2>
+
+    <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="py-3 px-6">ID</th>
+                <th class="py-3 px-6">Oferta</th>
+                <th class="py-3 px-6">Trabajador</th>
+                <th class="py-3 px-6">Estado</th>
+                <th class="py-3 px-6">Fecha</th>
+                <th class="py-3 px-6">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in postulaciones %}
+            <tr class="border-b">
+                <td class="py-3 px-6">{{ p.id }}</td>
+                <td class="py-3 px-6">{{ p.oferta.titulo }}</td>
+                <td class="py-3 px-6">{{ p.trabajador.nombre }} {{ p.trabajador.apellido }}</td>
+                <td class="py-3 px-6">{{ p.estado }}</td>
+                <td class="py-3 px-6">{{ p.fecha_postulacion|date:"Y-m-d H:i" }}</td>
+                <td class="py-3 px-6 flex gap-2">
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="postulacion_id" value="{{ p.id }}">
+                        <button name="accion" value="aceptado" class="px-2 py-1 bg-green-500 text-white rounded">Aceptar</button>
+                        <button name="accion" value="rechazado" class="px-2 py-1 bg-red-500 text-white rounded">Rechazar</button>
+                        <button name="accion" value="pendiente" class="px-2 py-1 bg-yellow-400 text-black rounded">Pendiente</button>
+                        <button name="accion" value="eliminar" class="px-2 py-1 bg-gray-600 text-white rounded">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="py-4 px-6 text-center">No hay postulaciones registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

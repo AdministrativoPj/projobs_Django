@@ -1,0 +1,137 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block title %}Dashboard Admin{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-10">
+  <h2 class="text-4xl font-bold mb-10 text-center">📊 Panel Estadístico - Admin</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div class="p-6 bg-white rounded-xl shadow-lg">
+      <h3 class="text-xl font-semibold mb-4 text-center">Usuarios por Rol</h3>
+      <canvas id="graficoUsuarios"></canvas>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-lg">
+      <h3 class="text-xl font-semibold mb-4 text-center">Ofertas por Categoría</h3>
+      <canvas id="graficoOfertas"></canvas>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-lg">
+      <h3 class="text-xl font-semibold mb-4 text-center">Postulaciones por Estado</h3>
+      <canvas id="graficoPostulaciones"></canvas>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-lg">
+      <h3 class="text-xl font-semibold mb-4 text-center">Calificaciones por Trabajador</h3>
+      <canvas id="graficoCalificaciones"></canvas>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-lg">
+      <h3 class="text-xl font-semibold mb-4 text-center">Evidencias por Trabajador</h3>
+      <canvas id="graficoEvidencias"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const randomColors = (num) => {
+    let colors = [];
+    for (let i = 0; i < num; i++) {
+      const r = Math.floor(Math.random() * 255);
+      const g = Math.floor(Math.random() * 255);
+      const b = Math.floor(Math.random() * 255);
+      colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`);
+    }
+    return colors;
+  }
+
+  const dataUsuarios = {{ data_usuarios|safe }};
+  new Chart(document.getElementById('graficoUsuarios'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(dataUsuarios),
+      datasets: [{
+        data: Object.values(dataUsuarios),
+        backgroundColor: randomColors(Object.keys(dataUsuarios).length),
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { enabled: true }
+      }
+    }
+  });
+
+  const dataOfertas = {{ data_ofertas|safe }};
+  new Chart(document.getElementById('graficoOfertas'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(dataOfertas),
+      datasets: [{
+        label: 'Cantidad',
+        data: Object.values(dataOfertas),
+        backgroundColor: randomColors(Object.keys(dataOfertas).length)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  const dataPostulaciones = {{ data_postulaciones|safe }};
+  new Chart(document.getElementById('graficoPostulaciones'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(dataPostulaciones),
+      datasets: [{
+        data: Object.values(dataPostulaciones),
+        backgroundColor: randomColors(Object.keys(dataPostulaciones).length)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  const dataCalificaciones = {{ data_calificaciones|safe }};
+  new Chart(document.getElementById('graficoCalificaciones'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(dataCalificaciones),
+      datasets: [{
+        label: 'Calificaciones',
+        data: Object.values(dataCalificaciones),
+        backgroundColor: randomColors(Object.keys(dataCalificaciones).length)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }},
+      scales: { y: { beginAtZero: true }}
+    }
+  });
+
+  const dataEvidencias = {{ data_evidencias|safe }};
+  new Chart(document.getElementById('graficoEvidencias'), {
+    type: 'polarArea',
+    data: {
+      labels: Object.keys(dataEvidencias),
+      datasets: [{
+        data: Object.values(dataEvidencias),
+        backgroundColor: randomColors(Object.keys(dataEvidencias).length)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+</script>
+{% endblock %}

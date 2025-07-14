@@ -1,0 +1,71 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block content %}
+<div style="padding: 1rem; max-width: 100%; box-sizing: border-box;">
+  <h2 style="margin-bottom: 1rem;">Chat con {{ receptor.nombre }} {{ receptor.apellido }}</h2>
+
+  <div id="chat-container" style="
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.5rem;
+    background-color: #f9f9f9;
+    width: 100%;
+    box-sizing: border-box;">
+    
+    {% for msg in mensajes %}
+      <div style="display: flex; justify-content: {% if msg.emisor.id == usuario.id %}flex-end{% else %}flex-start{% endif %}; margin-bottom: 0.5rem;">
+        <div style="
+          max-width: 80%;
+          padding: 0.75rem 1rem;
+          border-radius: 15px;
+          background-color: {% if msg.emisor.id == usuario.id %}#02786e{% else %}#e0e0e0{% endif %};
+          color: {% if msg.emisor.id == usuario.id %}white{% else %}black{% endif %};
+          font-size: 0.9rem;
+          word-wrap: break-word;
+        ">
+          {{ msg.contenido }}
+          <div style="font-size: 0.7rem; color: {% if msg.emisor.id == usuario.id %}rgba(255,255,255,0.6){% else %}#777{% endif %}; margin-top: 0.25rem;">
+            {{ msg.fecha_envio|date:"Y-m-d H:i" }}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p>No hay mensajes todavía.</p>
+    {% endfor %}
+  </div>
+
+  <form method="post" style="display: flex; flex-direction: column; gap: 0.5rem;">
+    {% csrf_token %}
+    <textarea name="contenido" rows="2" required placeholder="Escribe tu mensaje..." style="flex: 1; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc; resize: none;"></textarea>
+    <button type="submit" style="padding: 0.6rem; background-color: #02786e; color: white; border: none; border-radius: 8px; width: 100%;">Enviar</button>
+  </form>
+</div>
+
+<script>
+  const chatContainer = document.getElementById('chat-container');
+
+  function scrollToBottom() {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  scrollToBottom(); // al cargar
+
+  setInterval(() => {
+    fetch(window.location.href)
+      .then(response => response.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const updated = doc.querySelector('#chat-container');
+        if (updated) {
+          chatContainer.innerHTML = updated.innerHTML;
+          scrollToBottom(); // mantener scroll abajo
+        }
+      });
+  }, 4000);
+</script>
+{% endblock %}

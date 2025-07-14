@@ -1,0 +1,193 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block title %}Mi perfil{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+  <div class="contenedor-mensajes">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="perfil-dashboard">
+  <div class="perfil-header">
+    <div class="perfil-foto-nombre">
+      {% if usuario.foto %}
+        <img src="{{ usuario.foto.url }}" alt="Foto de perfil" class="foto-perfil-grande">
+      {% else %}
+        <img src="{% static 'img/perfil_default.png' %}" alt="Foto por defecto" class="foto-perfil-grande">
+      {% endif %}
+      <div>
+        <h2>{{ usuario.nombre }} {{ usuario.apellido }}</h2>
+        <p class="rol">{{ usuario.get_rol_display }}</p>
+      </div>
+    </div>
+    <a href="{% url 'editar_perfil' %}" class="btn-editar"><i class="fas fa-edit"></i> Editar perfil</a>
+  </div>
+
+  <div class="perfil-detalles">
+    <div class="card-info">
+      <h4>Correo electrónico</h4>
+      <p>{{ usuario.correo }}</p>
+    </div>
+    <div class="card-info">
+      <h4>Rol en ProJobs</h4>
+      <p>{{ usuario.get_rol_display }}</p>
+    </div>
+  </div>
+
+  {% if usuario.rol == 3 %}
+    <div class="contenedor-boton-evidencia">
+      <button id="btnSubirEvidencia" class="btn-evidencia">Subir Evidencia 📁</button>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Modal de carga de evidencia -->
+<div id="modalEvidencia" class="modal hidden">
+  <div class="modal-contenido">
+    <button onclick="cerrarModal()" class="modal-cerrar">&times;</button>
+    <h2 class="modal-titulo">Cargar Evidencia</h2>
+    <form id="formEvidencia" enctype="multipart/form-data" class="modal-form">
+      <label for="postulacion_id">Postulación asociada:</label>
+      <select name="postulacion_id" id="postulacion_id" required>
+        {% for p in postulaciones_aceptadas %}
+          <option value="{{ p.id }}">{{ p.oferta.titulo }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="archivo">Archivo:</label>
+      <input type="file" name="archivo" id="archivo" accept=".jpg,.jpeg,.png,.pdf,.docx,.webp" required>
+
+      <label for="descripcion">Descripción:</label>
+      <textarea name="descripcion" id="descripcion" rows="3" placeholder="Describe brevemente la evidencia..."></textarea>
+
+      <button type="submit" class="btn-enviar">Subir</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById("modalEvidencia");
+  const btn = document.getElementById("btnSubirEvidencia");
+  const form = document.getElementById("formEvidencia");
+
+  if (btn) {
+    btn.onclick = () => modal.classList.remove("hidden");
+  }
+
+  function cerrarModal() {
+    modal.classList.add("hidden");
+    form.reset();
+  }
+
+  form.onsubmit = async function (e) {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const response = await fetch("{% url 'subir_evidencia' %}", {
+      method: "POST",
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      body: formData
+    });
+    const result = await response.json();
+    if (result.ok) {
+      alert("✅ Evidencia subida correctamente.");
+      cerrarModal();
+      location.reload();
+    } else {
+      alert("❌ Error: " + (result.error || "No se pudo subir la evidencia."));
+    }
+  };
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {
+      e.preventDefault();
+    }
+  });
+</script>
+{% endblock %}
+<style>
+.contenedor-mensajes {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.contenedor-mensajes .alert {
+  display: inline-block;
+  padding: 20px 30px;
+  margin: 10px auto;
+  border-radius: 12px;
+  font-size: 1.6em;
+  font-weight: bold;
+  opacity: 0.95;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  animation: popFade 6s forwards;
+}
+
+.alert-success::before {
+  content: "✅ ";
+  font-size: 1.3em;
+}
+.alert-warning::before {
+  content: "⚠️ ";
+  font-size: 1.3em;
+}
+.alert-error::before,
+.alert-danger::before {
+  content: "❌ ";
+  font-size: 1.3em;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 2px solid #28a745;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 2px solid #ffc107;
+}
+
+.alert-error, .alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+  border: 2px solid #dc3545;
+}
+
+@keyframes popFade {
+  0% { transform: translate(-50%, -20px) scale(0.8); opacity: 0; }
+  10%, 90% { transform: translate(-50%, 0) scale(1); opacity: 0.95; }
+  100% { transform: translate(-50%, -20px) scale(0.8); opacity: 0; }
+}
+</style>

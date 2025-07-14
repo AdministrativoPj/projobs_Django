@@ -1,0 +1,73 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/style_postular_oferta.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ofertas-container">
+  <h2>Ofertas laborales disponibles</h2>
+
+  <!-- 🔥 Filtro por categoría -->
+  <form method="get" class="filtro-form" style="
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+    background: #f8f9fa;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  ">
+    <label for="categoria" style="
+      font-weight: 600;
+      font-size: 1rem;
+      color: #333;
+    ">Filtrar por categoría:</label>
+
+    <select name="categoria" id="categoria" onchange="this.form.submit()" style="
+      padding: 8px 12px;
+      font-size: 1rem;
+      border: 2px solid #ced4da;
+      border-radius: 6px;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    " onfocus="this.style.borderColor='#007bff'; this.style.boxShadow='0 0 0 0.2rem rgba(0,123,255,.25)'"
+       onblur="this.style.borderColor='#ced4da'; this.style.boxShadow='none'">
+      <option value="">Todas</option>
+      <option value="Electricista" {% if categoria_seleccionada == "Electricista" %}selected{% endif %}>Electricista</option>
+      <option value="Diseñador Gráfico" {% if categoria_seleccionada == "Diseñador Gráfico" %}selected{% endif %}>Diseñador Gráfico</option>
+      <option value="Programador" {% if categoria_seleccionada == "Programador" %}selected{% endif %}>Programador</option>
+      <option value="Plomero" {% if categoria_seleccionada == "Plomero" %}selected{% endif %}>Plomero</option>
+      <option value="Jardinero" {% if categoria_seleccionada == "Jardinero" %}selected{% endif %}>Jardinero</option>
+      <option value="Otro" {% if categoria_seleccionada == "Otro" %}selected{% endif %}>Otro</option>
+    </select>
+  </form>
+
+  {% for message in messages %}
+    <div class="msg">{{ message }}</div>
+  {% endfor %}
+
+  {% if ofertas %}
+    {% for oferta in ofertas %}
+      <div class="oferta-card">
+        <div class="oferta-header">
+          <div class="oferta-titulo">{{ oferta.titulo }}</div>
+          <div><small><i class="fas fa-map-marker-alt"></i> {{ oferta.ubicacion }}</small></div>
+        </div>
+        <div class="oferta-desc">{{ oferta.descripcion }}</div>
+        <div class="oferta-footer">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="id_oferta" value="{{ oferta.id }}">
+            <button type="submit" class="postular-btn">Postularme</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No hay ofertas disponibles por el momento.</p>
+  {% endif %}
+</div>
+{% endblock %}

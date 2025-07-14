@@ -1,0 +1,78 @@
+
+.crear-oferta-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+  background: linear-gradient(to bottom right, #e0f2f1, #ffffff);
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+.crear-oferta-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 700px;
+  transition: transform 0.3s ease;
+}
+
+.form-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  color: #00796b;
+  text-align: center;
+}
+
+.oferta-form .form-field {
+  margin-bottom: 20px;
+}
+
+.oferta-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #37474f;
+}
+
+.oferta-form input,
+.oferta-form select,
+.oferta-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  background-color: #fdfdfd;
+  transition: border-color 0.3s ease;
+}
+
+.oferta-form input:focus,
+.oferta-form select:focus,
+.oferta-form textarea:focus {
+  border-color: #00796b;
+  outline: none;
+}
+
+.oferta-form textarea {
+  resize: vertical;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #00796b;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #005f56;
+}

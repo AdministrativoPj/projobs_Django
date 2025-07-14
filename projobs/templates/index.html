@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProJobs</title>
+
+  <!-- Fuentes e iconos -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="{% static 'css/index.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mensajes.css' %}">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f9f9f9;
+      color: #111;
+    }
+
+    .navbar {
+      background-color: #02786e;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    .logo img {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease-in-out;
+    }
+
+    .nav-links a:hover {
+      color: #cdece9;
+    }
+
+    .nav-links a.btn-auth {
+      background-color: #fff;
+      color: #02786e;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .nav-links a.btn-auth:hover {
+      background-color: #def1ef;
+      border-color: #def1ef;
+    }
+
+    .menu-toggle {
+      display: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        background-color: #02786e;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        padding: 1rem 2rem;
+        gap: 1rem;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+    }
+
+    main {
+      padding: 0;
+      margin: 0;
+    }
+
+    .container {
+      padding: 0 2rem 2rem 2rem;
+    }
+
+    #hero {
+      margin-top: 0 !important;
+      padding-top: 3rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="{% static 'img/logotipo.png' %}" alt="Logo" />
+      <span>ProJobs</span>
+    </div>
+
+    <i class="fas fa-bars menu-toggle" onclick="toggleMenu()"></i>
+
+    <nav class="nav-links" id="navLinks">
+      
+      <a href="#quienes">¿Quiénes somos?</a>
+      <a href="#servicios">Servicios</a>
+      <a href="#contacto">Contacto</a>
+      <a href="{% url 'inicioSesion' %}" class="btn-auth">Iniciar sesión</a>
+      <a href="{% url 'formulario' %}" class="btn-auth">Crear cuenta</a>
+    </nav>
+  </header>
+
+  <!-- CONTENIDO -->
+  <main class="container">
+
+    <!-- HERO -->
+    <section id="hero" class="hero-section">
+      <h1>Encuentra el talento ideal<br /><span>para tu próximo proyecto</span></h1>
+      <p>Conectamos profesionales con oportunidades reales</p>
+    </section>
+
+    <!-- QUIÉNES SOMOS -->
+    <section id="quienes">
+      <h2>¿Quiénes somos?</h2>
+      <p>Somos una plataforma que une empresas y profesionales en un entorno confiable y efectivo. Nuestro objetivo es ayudarte a encontrar y ofrecer servicios de calidad en tiempo récord.</p>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section id="servicios">
+      <h2>Servicios</h2>
+      <div class="card-container">
+        <div class="card">
+          <i class="fas fa-code fa-2x"></i>
+          <h4>Desarrollo Web</h4>
+          <p>Profesionales listos para crear tu app o sitio web.</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-paint-brush fa-2x"></i>
+          <h4>Diseño Gráfico</h4>
+          <p>Identidad visual, branding, y más.</p>
+        </div>
+        <div class="card">
+          <i class="fas fa-tools fa-2x"></i>
+          <h4>Servicios Técnicos</h4>
+          <p>Desde electricidad hasta mantenimiento general.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section id="contacto">
+      <h2>Contáctanos</h2>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li class="{{ message.tags }}">
+              {{ message }}
+              <button class="close" onclick="closeMessage(this)">×</button>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <form method="POST" action="">
+        {% csrf_token %}
+        <input type="text" name="nombre" placeholder="Tu nombre" required />
+        <input type="email" name="correo" placeholder="Correo electrónico" required />
+        <textarea name="mensaje" placeholder="Tu mensaje" rows="5" required></textarea>
+        <button type="submit">Enviar</button>
+      </form>
+    </section>
+
+  </main>
+
+  <script>
+    function toggleMenu() {
+      const navLinks = document.getElementById("navLinks");
+      navLinks.classList.toggle("active");
+    }
+
+    function closeMessage(btn) {
+      const li = btn.closest("li");
+      li.classList.add("hide-message");
+      setTimeout(() => li.remove(), 400);
+    }
+  </script>
+   <script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {
+      e.preventDefault();
+    }
+  });
+</script>
+
+</body>
+</html>

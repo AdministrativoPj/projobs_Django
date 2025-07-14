@@ -1,0 +1,55 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/historial_postulaciones.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="historial-container">
+  <h2 class="historial-titulo">Historial de Postulaciones</h2>
+
+  {% for p in postulaciones %}
+    <div class="historial-card">
+      <div class="historial-info">
+        <p><strong>Oferta:</strong> {{ p.oferta.titulo }}</p>
+        <p><strong>Fecha:</strong> {{ p.fecha_postulacion|date:"Y-m-d H:i" }}</p>
+
+        {% if usuario.rol == 2 %}
+          <p><strong>Trabajador:</strong>
+            <a href="{% url 'perfil_trabajador_detalle' p.trabajador.id %}" class="enlace-perfil">
+              {{ p.trabajador.nombre }} {{ p.trabajador.apellido }}
+            </a>
+          </p>
+          <a href="{% url 'chat_con_usuario' p.trabajador.id %}" class="btn-actualizar">Chatear</a>
+          <form method="post" class="historial-form">
+            {% csrf_token %}
+            <input type="hidden" name="postulacion_id" value="{{ p.id }}">
+            <select name="estado">
+              <option value="pendiente" {% if p.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+              <option value="aceptado" {% if p.estado == "aceptado" %}selected{% endif %}>Aceptado</option>
+              <option value="rechazado" {% if p.estado == "rechazado" %}selected{% endif %}>Rechazado</option>
+            </select>
+            <button type="submit" class="btn-actualizar">Actualizar</button>
+          </form>
+
+        {% elif usuario.rol == 3 %}
+          <p><strong>Cliente:</strong> {{ p.oferta.cliente.nombre }} {{ p.oferta.cliente.apellido }}</p>
+          <a href="{% url 'chat_con_usuario' p.oferta.cliente.id %}" class="btn-actualizar">Chatear</a>
+          <p><strong>Estado:</strong>
+            <span class="estado estado-{{ p.estado }}">{{ p.estado|capfirst }}</span>
+          </p>
+
+          <form method="post" class="historial-form" onsubmit="return confirm('¿Seguro que deseas eliminar esta postulación?');">
+            {% csrf_token %}
+            <input type="hidden" name="postulacion_id" value="{{ p.id }}">
+            <button type="submit" class="btn-eliminar">🗑️ Eliminar</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p>No hay postulaciones.</p>
+  {% endfor %}
+</div>
+{% endblock %}

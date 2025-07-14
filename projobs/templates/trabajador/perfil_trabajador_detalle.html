@@ -1,0 +1,114 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+{% block content %}
+<div class="perfil-trabajador-box">
+  <h2>Perfil del Trabajador</h2>
+
+  <div class="perfil-trabajador-info">
+    {% if trabajador.foto %}
+      <img src="{{ trabajador.foto.url }}" alt="Foto" class="foto-trabajador">
+    {% else %}
+      <img src="{% static 'img/perfil_default.png' %}" alt="Foto por defecto" class="foto-trabajador">
+    {% endif %}
+    <div>
+      <h3>{{ trabajador.nombre }} {{ trabajador.apellido }}</h3>
+    
+      <p><strong>Calificación promedio:</strong> 
+        <span class="estrellas-promedio">
+          {% for i in "12345" %}
+            {% if forloop.counter <= promedio %}
+              <span class="estrella llena">★</span>
+            {% else %}
+              <span class="estrella vacia">☆</span>
+            {% endif %}
+          {% endfor %}
+        </span>
+        ({{ promedio }}/5)
+      </p>
+      <a href="{% url 'historial_postulaciones' %}" class="btn-volver">← Volver al historial</a>
+    </div>
+  </div>
+
+  <hr>
+
+  <form method="post" class="form-calificacion">
+    {% csrf_token %}
+    <label>Tu Calificación:</label>
+    <div class="estrellas">
+      {% for i in "54321" %}
+        <input type="radio" id="estrella{{ i }}" name="calificacion" value="{{ i }}">
+        <label for="estrella{{ i }}">★</label>
+      {% endfor %}
+    </div>
+
+    <label for="comentario">Comentario:</label>
+    <textarea name="comentario" id="comentario" rows="4" required></textarea>
+
+    <button type="submit">Guardar Calificación</button>
+  </form>
+
+  <hr>
+
+  <h3>Comentarios de otros clientes:</h3>
+  {% if calificaciones %}
+    <div id="comentarios">
+      {% for c in calificaciones %}
+        <div class="comentario-box {% if forloop.counter > 3 %}oculto{% endif %}">
+          <p><strong>Puntuación:</strong> 
+            <span class="estrellas-promedio">
+              {% for i in "12345" %}
+                {% if forloop.counter <= c.puntuacion %}
+                  <span class="estrella llena">★</span>
+                {% else %}
+                  <span class="estrella vacia">☆</span>
+                {% endif %}
+              {% endfor %}
+            </span>
+            ({{ c.puntuacion }}/5)
+          </p>
+          <p><strong>Comentario:</strong> {{ c.comentario }}</p>
+          <p><small><strong>Fecha:</strong> {{ c.fecha|date:"Y-m-d H:i" }}</small></p>
+          <hr>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if calificaciones|length > 3 %}
+      <button id="verMasBtn" onclick="toggleComentarios()">▼ Ver más</button>
+    {% endif %}
+  {% else %}
+    <p>No hay comentarios aún.</p>
+  {% endif %}
+</div>
+
+<script>
+  function toggleComentarios() {
+    const ocultos = document.querySelectorAll('.comentario-box.oculto');
+    const btn = document.getElementById('verMasBtn');
+    const visibles = Array.from(ocultos).filter(e => e.style.display !== 'block');
+
+    if (visibles.length > 0) {
+      ocultos.forEach(e => e.style.display = 'block');
+      btn.textContent = "▲ Ver menos";
+    } else {
+      ocultos.forEach((e, i) => e.style.display = i < 3 ? 'block' : 'none');
+      btn.textContent = "▼ Ver más";
+    }
+  }
+
+  window.onload = () => {
+    const ocultos = document.querySelectorAll('.comentario-box.oculto');
+    ocultos.forEach((e, i) => {
+      e.style.display = i < 3 ? 'block' : 'none';
+    });
+  };
+</script>
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {
+      e.preventDefault();
+    }
+  });
+</script>
+{% endblock %}

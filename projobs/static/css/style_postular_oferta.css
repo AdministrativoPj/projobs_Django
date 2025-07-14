@@ -1,0 +1,91 @@
+.ofertas-container {
+  max-width: 1000px;
+  margin: 100px auto 0 auto !important;
+  padding: 2rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background-color: transparent !important;
+}
+
+.ofertas-container {
+  margin-top: 100px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.oferta-card {
+  background: #ffffff !important;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+.oferta-card {
+  background: #ffffff;
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.oferta-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+.oferta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.oferta-titulo {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #02786e;
+}
+
+.oferta-desc {
+  margin-top: 0.8rem;
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.oferta-footer {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.postular-btn {
+  background-color: #02786e;
+  color: #fff;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.postular-btn:hover {
+  background-color: #025e57;
+}
+
+.msg {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  background-color: #e0f7f1;
+  color: #065f46;
+  border-left: 5px solid #00a48a;
+  margin-bottom: 1rem;
+}

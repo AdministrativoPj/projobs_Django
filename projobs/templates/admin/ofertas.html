@@ -1,0 +1,46 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block title %}Gestionar Ofertas - Admin{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-10">
+    <h2 class="text-3xl font-bold mb-8 text-center">Gestionar Ofertas</h2>
+    <table class="w-full table-auto border-collapse">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="p-2 border">ID</th>
+                <th class="p-2 border">Título</th>
+                <th class="p-2 border">Cliente</th>
+                <th class="p-2 border">Categoría</th>
+                <th class="p-2 border">Publicación</th>
+                <th class="p-2 border">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for oferta in ofertas %}
+            <tr class="hover:bg-gray-100">
+                <td class="p-2 border">{{ oferta.id }}</td>
+                <td class="p-2 border">{{ oferta.titulo }}</td>
+                <td class="p-2 border">{{ oferta.cliente.nombre }} {{ oferta.cliente.apellido }}</td>
+                <td class="p-2 border">{{ oferta.categoria }}</td>
+                <td class="p-2 border">{{ oferta.fecha_publicacion|date:"Y-m-d" }}</td>
+                <td class="p-2 border">
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="oferta_id" value="{{ oferta.id }}">
+                        <button type="submit" name="accion" value="eliminar" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700">
+                            Eliminar
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="p-4 text-center text-gray-500">No hay ofertas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

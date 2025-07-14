@@ -1,0 +1,47 @@
+{% extends 'baseperfil.html' %}
+
+{% block title %}Calificaciones - Admin{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-10">
+    <h2 class="text-3xl font-bold mb-8 text-center">Calificaciones registradas</h2>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded shadow">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-3 px-6 text-left">Trabajador</th>
+                    <th class="py-3 px-6 text-left">Cliente</th>
+                    <th class="py-3 px-6 text-left">Puntuación</th>
+                    <th class="py-3 px-6 text-left">Comentario</th>
+                    <th class="py-3 px-6 text-left">Fecha</th>
+                    <th class="py-3 px-6 text-left">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in calificaciones %}
+                <tr class="border-b">
+                    <td class="py-3 px-6">{{ c.trabajador.nombre }} {{ c.trabajador.apellido }}</td>
+                    <td class="py-3 px-6">{{ c.cliente.nombre }} {{ c.cliente.apellido }}</td>
+                    <td class="py-3 px-6">{{ c.puntuacion }}</td>
+                    <td class="py-3 px-6">{{ c.comentario }}</td>
+                    <td class="py-3 px-6">{{ c.fecha|date:"Y-m-d H:i" }}</td>
+                    <td class="py-3 px-6">
+                        <form action="{% url 'admin_eliminar_calificacion' c.id %}" method="post" onsubmit="return confirm('¿Seguro de eliminar esta calificación?')">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-600 hover:text-red-800 font-semibold">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-6 text-center">No hay calificaciones registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
