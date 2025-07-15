@@ -88,12 +88,38 @@ body {
   background-color: #025f58;
 }
 
+/* Mensajes con colores por tipo */
 .messages {
   list-style: none;
   padding: 0;
   margin-bottom: 1rem;
-  color: #d8000c;
   font-size: 0.9rem;
+}
+.messages li {
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.messages li.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+.messages li.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+.messages li.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+.messages li.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
 }
 
 /* RESPONSIVO */
@@ -101,15 +127,14 @@ body {
   .auth-card {
     flex-direction: column-reverse;
   }
-
   .auth-image {
     padding: 1.5rem;
   }
-
   .auth-form {
     padding: 2rem 1.5rem;
   }
 }
+
 .dropzone {
   border: 2px dashed #aaa;
   border-radius: 10px;
@@ -120,7 +145,6 @@ body {
   margin-top: 15px;
   background-color: #f9f9f9;
 }
-
 .dropzone.dragging {
   background-color: #e0e0e0;
   border-color: #555;
@@ -140,7 +164,6 @@ body {
   box-shadow: none;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-
 .select-rol:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);

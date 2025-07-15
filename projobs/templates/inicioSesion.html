@@ -26,7 +26,12 @@
           {% if messages %}
             <ul class="messages">
               {% for message in messages %}
-                <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                <li class="
+                  {% if 'success' in message.tags %}msg-success
+                  {% elif 'warning' in message.tags %}msg-warning
+                  {% elif 'error' in message.tags %}msg-error
+                  {% else %}msg-info{% endif %}
+                ">{{ message }}</li>
               {% endfor %}
             </ul>
           {% endif %}
@@ -34,6 +39,12 @@
           <input type="email" name="correo" placeholder="Correo electrónico" required>
           <input type="password" name="password" placeholder="Contraseña" required>
           <button type="submit">Iniciar sesión</button>
+
+          <div style="margin-top: 15px; text-align: center;">
+            <a href="{% url 'recuperar_password' %}" style="font-size: 0.9rem; color: #3498db;">
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
         </form>
 
         <hr style="margin: 20px 0;">
@@ -53,6 +64,10 @@
   </div>
 
   <style>
+    .msg-success { color: #2e7d32; }  /* verde */
+    .msg-warning { color: #ff8f00; }  /* naranja */
+    .msg-error   { color: #d32f2f; }  /* rojo */
+    .msg-info    { color: #1976d2; }  /* azul */
     .social-login {
       display: flex;
       flex-direction: column;
@@ -73,14 +88,15 @@
       background-color: #3b5998;
     }
   </style>
+
   <script>
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  document.addEventListener('keydown', e => {
-    if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {
-      e.preventDefault();
-    }
-  });
-</script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {
+        e.preventDefault();
+      }
+    });
+  </script>
 
 </body>
 </html>

@@ -18,6 +18,7 @@ class Usuario(models.Model):
     )
     rol = models.IntegerField(choices=ROLES, default=2)
     foto = models.ImageField(upload_to='fotos_perfil/', blank=True, null=True)
+    token_recuperacion = models.CharField(max_length=255, null=True, blank=True)  # <-- NUEVO CAMPO
 
     def promedio_calificaciones(self):
         promedio = self.calificaciones_recibidas.aggregate(avg=Avg('puntuacion'))['avg']

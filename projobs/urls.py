@@ -12,6 +12,9 @@ urlpatterns = [
     path('editar_perfil/', views.editar_perfil, name='editar_perfil'),
     path('perfilusuario/', views.perfilusuario, name='perfilusuario'),
     path('perfiltrabajador/', views.perfiltrabajador, name='perfiltrabajador'),
+    path('recuperar-password/', views.recuperar_password, name='recuperar_password'),
+    path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
+
 
     # Ofertas y postulaciones
     path('crear-oferta/', views.crear_oferta, name='crear_oferta'),

@@ -27,7 +27,12 @@
         {% if messages %}
           <ul class="messages">
             {% for message in messages %}
-              <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+              <li class="
+                {% if 'success' in message.tags %}msg-success
+                {% elif 'warning' in message.tags %}msg-warning
+                {% elif 'error' in message.tags %}msg-error
+                {% else %}msg-info{% endif %}
+              ">{{ message }}</li>
             {% endfor %}
           </ul>
         {% endif %}
@@ -43,7 +48,6 @@
           <option value="3" {% if rol == "3" %}selected{% endif %}>Trabajador</option>
         </select>
 
-        <!-- Área de carga arrastrable -->
         <div class="dropzone" id="dropzone">
           <p>Arrastra tu foto aquí o haz clic para seleccionar</p>
           <input type="file" name="foto" id="foto" accept="image/*" hidden>
@@ -55,6 +59,13 @@
 
   </div>
 </div>
+
+<style>
+  .msg-success { color: #2e7d32; }  /* verde */
+  .msg-warning { color: #ff8f00; }  /* naranja */
+  .msg-error   { color: #d32f2f; }  /* rojo */
+  .msg-info    { color: #1976d2; }  /* azul */
+</style>
 
 <script>
   const dropzone = document.getElementById('dropzone');
@@ -74,7 +85,6 @@
     fileInput.files = e.dataTransfer.files;
   });
 
-  // Desactivar F12 y clic derecho (limitado)
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('keydown', e => {
     if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {

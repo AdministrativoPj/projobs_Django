@@ -8,7 +8,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_http_methods
 from django.db.models import Q, Count
 from django.utils import timezone
+from django.http import HttpResponseNotFound
 import re
+import uuid
+from django.urls import reverse
 
 from .models import Usuario, OfertaLaboralIndependiente, MensajeContacto, Postulacion, Mensaje, Calificacion, Evidencia
 
@@ -108,7 +111,7 @@ def formulario(request):
             for error in errores:
                 messages.error(request, error)
         else:
-            Usuario.objects.create(
+            nuevo_usuario = Usuario.objects.create(
                 nombre=nombre,
                 apellido=apellido,
                 correo=correo,
@@ -116,10 +119,29 @@ def formulario(request):
                 foto=foto,
                 rol=int(rol)
             )
-            messages.success(request, "Usuario registrado correctamente")
+
+            # Enviar correo de bienvenida
+            asunto = "¡Bienvenido a ProJobs!"
+            mensaje = f"""
+Hola {nuevo_usuario.nombre},
+
+¡Gracias por registrarte en ProJobs!
+
+Ahora puedes explorar las ofertas, gestionar tus postulaciones y aprovechar todas las funciones que tenemos para ti.
+
+Saludos,
+El equipo de ProJobs
+"""
+            try:
+                send_mail(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [nuevo_usuario.correo])
+            except Exception as e:
+                print(f"Error al enviar correo de bienvenida: {e}")
+
+            messages.success(request, "Usuario registrado correctamente. Te hemos enviado un correo de bienvenida.")
             return redirect('inicioSesion')
 
     return render(request, "formulario.html")
+
 
 
 def cerrar_sesion(request):
@@ -556,3 +578,57 @@ def admin_ver_chat(request, usuario1_id, usuario2_id):
         'user2': user2,
         'mensajes': mensajes
     })
+# -------------------------
+# Recuperar contraseña
+# -------------------------
+
+def recuperar_password(request):
+    if request.method == "POST":
+        correo = request.POST.get("correo", "").strip()
+        usuario = Usuario.objects.filter(correo=correo).first()
+        if usuario:
+            token = str(uuid.uuid4())
+            usuario.token_recuperacion = token
+            usuario.save()
+
+            enlace = request.build_absolute_uri(
+                reverse('reset_password', args=[token])
+            )
+            asunto = "Recuperación de contraseña - ProJobs"
+            mensaje = f"""
+Hola {usuario.nombre},
+
+Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace o pégalo en tu navegador:
+
+{enlace}
+
+Si no solicitaste este cambio, ignora este correo.
+
+Saludos,
+Equipo ProJobs
+"""
+            send_mail(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [correo])
+            messages.success(request, "Te enviamos un correo con el enlace para restablecer tu contraseña.")
+            return redirect('inicioSesion')
+        else:
+            messages.error(request, "No encontramos un usuario con ese correo.")
+    return render(request, "recuperar_password.html")
+
+
+def reset_password(request, token):
+    usuario = Usuario.objects.filter(token_recuperacion=token).first()
+    if not usuario:
+        return HttpResponseNotFound("Enlace inválido o expirado.")
+
+    if request.method == "POST":
+        nueva_password = request.POST.get("password", "").strip()
+        if len(nueva_password) < 6 or not re.search(r'\d', nueva_password) or not re.search(r'[A-Za-z]', nueva_password):
+            messages.error(request, "La contraseña debe tener mínimo 6 caracteres con letras y números.")
+        else:
+            usuario.password = make_password(nueva_password)
+            usuario.token_recuperacion = None
+            usuario.save()
+            messages.success(request, "¡Contraseña actualizada! Ahora puedes iniciar sesión.")
+            return redirect('inicioSesion')
+
+    return render(request, "reset_password.html", {'usuario': usuario})
