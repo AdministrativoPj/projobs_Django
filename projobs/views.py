@@ -153,12 +153,54 @@ def cerrar_sesion(request):
 # -------------------------
 # Perfil
 # -------------------------
-
 def perfilusuario(request):
-    usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
-    if not usuario.correo or "@" not in usuario.correo:
-        messages.warning(request, "⚠️ Por favor edita tu perfil y agrega un correo válido para poder contactarte.")
-    return render(request, 'perfilusuario.html', {'usuario': usuario})
+    usuario_id = request.session.get("usuario_id")  # este es el que realmente guardas
+    if not usuario_id:
+        return redirect("inicioSesion")
+
+    try:
+        usuario_obj = Usuario.objects.get(id=usuario_id)
+    except Usuario.DoesNotExist:
+        return redirect("inicioSesion")
+
+    # Obtener postulaciones finalizadas y aceptadas del trabajador actual
+    postulaciones_aceptadas = Postulacion.objects.filter(
+        trabajador=usuario_obj,
+        estado='aceptado',
+        finalizada=True
+    ).select_related('oferta')
+
+    context = {
+        "usuario": usuario_obj,
+        "postulaciones_aceptadas": postulaciones_aceptadas,
+    }
+
+    return render(request, "perfilusuario.html", context)
+
+    # Obtener datos del usuario autenticado desde la sesión
+    usuario = request.session.get("usuario")
+
+    if not usuario:
+        return redirect("inicioSesion")
+
+    try:
+        usuario_obj = Usuario.objects.get(id=usuario["id"])
+    except Usuario.DoesNotExist:
+        return redirect("inicioSesion")
+
+    # Obtener postulaciones finalizadas y aceptadas del trabajador actual
+    postulaciones_aceptadas = Postulacion.objects.filter(
+        trabajador=usuario_obj,
+        estado='aceptado',
+        finalizada=True
+    ).select_related('oferta')
+
+    context = {
+        "usuario": usuario_obj,
+        "postulaciones_aceptadas": postulaciones_aceptadas,
+    }
+
+    return render(request, "perfilusuario.html", context)
 
 
 def perfiltrabajador(request):
@@ -244,8 +286,6 @@ def lista_ofertas(request):
     })
 
 
-@require_http_methods(["GET", "POST"])
-def historial_postulaciones(request):
     usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
     if usuario.rol == 2:
         postulaciones = Postulacion.objects.filter(oferta__cliente=usuario)
@@ -272,6 +312,49 @@ def historial_postulaciones(request):
         return redirect('historial_postulaciones')
 
     return render(request, 'historial_postulaciones.html', {'usuario': usuario, 'postulaciones': postulaciones})
+@require_http_methods(["GET", "POST"])
+def historial_postulaciones(request):
+    usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
+
+    if usuario.rol == 2:
+        postulaciones = Postulacion.objects.filter(oferta__cliente=usuario)
+    elif usuario.rol == 3:
+        postulaciones = Postulacion.objects.filter(trabajador=usuario)
+    else:
+        postulaciones = []
+
+    if request.method == 'POST':
+        post_id = request.POST.get('postulacion_id')
+
+        if usuario.rol == 2:
+            postulacion = get_object_or_404(Postulacion, id=post_id, oferta__cliente=usuario)
+
+            if postulacion.estado == 'aceptado' and postulacion.finalizada:
+                messages.warning(request, "⚠️ Esta postulación ya fue finalizada. No puedes modificar su estado.")
+            else:
+                nuevo_estado = request.POST.get('estado')
+                if nuevo_estado in ['pendiente', 'aceptado', 'rechazado']:
+                    postulacion.estado = nuevo_estado
+                    postulacion.revisada = True
+                    postulacion.save()
+                    messages.success(request, "✅ Estado actualizado correctamente.")
+                else:
+                    messages.error(request, "❌ Estado inválido.")
+
+        elif usuario.rol == 3:
+            postulacion = get_object_or_404(Postulacion, id=post_id, trabajador=usuario)
+            if postulacion.finalizada:
+                messages.error(request, "❌ No puedes eliminar una postulación ya finalizada.")
+            else:
+                postulacion.delete()
+                messages.success(request, "🗑️ Postulación eliminada correctamente.")
+
+        return redirect('historial_postulaciones')
+
+    return render(request, 'historial_postulaciones.html', {
+        'usuario': usuario,
+        'postulaciones': postulaciones
+    })
 
 
 # -------------------------
@@ -357,14 +440,81 @@ def marcar_como_revisada(request):
     return JsonResponse({'ok': True})
 
 
-@require_http_methods(["POST"])
-def subir_evidencia(request):
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+@require_POST
+def subir_evidencia_api(request):
+    try:
+        trabajador_id = request.session.get('usuario_id')
+        if not trabajador_id:
+            return JsonResponse({'ok': False, 'error': 'No estás autenticado'}, status=403)
+
+        trabajador = get_object_or_404(Usuario, id=trabajador_id, rol=3)
+
+        post_id = request.POST.get('postulacion_id')
+        descripcion = request.POST.get('descripcion', '').strip()
+        archivo = request.FILES.get('archivo')
+
+        if not post_id:
+            return JsonResponse({'ok': False, 'error': 'Falta ID de postulación'}, status=400)
+
+        if not archivo:
+            return JsonResponse({'ok': False, 'error': 'Debes adjuntar un archivo'}, status=400)
+
+        postulacion = get_object_or_404(
+            Postulacion,
+            id=post_id,
+            trabajador=trabajador,
+            estado='aceptado',
+            finalizada=True
+        )
+
+        evidencia = Evidencia.objects.create(
+            trabajador=trabajador,
+            postulacion=postulacion,
+            archivo=archivo,
+            descripcion=descripcion
+        )
+
+        return JsonResponse({'ok': True, 'mensaje': '✅ Evidencia subida correctamente'})
+
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': f'Error inesperado: {str(e)}'}, status=500)
+
+
+@require_http_methods(["GET", "POST"])
+def subir_evidencia_view(request):
     trabajador = get_object_or_404(Usuario, id=request.session.get('usuario_id'), rol=3)
-    postulacion = get_object_or_404(Postulacion, id=request.POST.get('postulacion_id'), trabajador=trabajador, estado='aceptado')
-    Evidencia.objects.create(trabajador=trabajador, postulacion=postulacion,
-                             archivo=request.FILES.get('archivo'),
-                             descripcion=request.POST.get('descripcion', '').strip())
-    return JsonResponse({'ok': True})
+
+    postulaciones_finalizadas = Postulacion.objects.filter(
+        trabajador=trabajador,
+        estado='aceptado',
+        finalizada=True
+    ).select_related('oferta')
+
+    if request.method == "POST":
+        post_id = request.POST.get('postulacion_id')
+        archivo = request.FILES.get('archivo')
+        descripcion = request.POST.get('descripcion', '').strip()
+
+        if not post_id or not archivo:
+            messages.error(request, "Debe seleccionar una postulación y adjuntar un archivo.")
+        else:
+            postulacion = get_object_or_404(Postulacion, id=post_id, trabajador=trabajador, estado='aceptado', finalizada=True)
+            Evidencia.objects.create(
+                trabajador=trabajador,
+                postulacion=postulacion,
+                archivo=archivo,
+                descripcion=descripcion
+            )
+            messages.success(request, "✅ Evidencia cargada exitosamente.")
+            return redirect('subir_evidencia')
+
+    return render(request, 'evidencias/subir_evidencia.html', {
+        'usuario': trabajador,
+        'postulaciones': postulaciones_finalizadas
+    })
 
 
 # -------------------------
@@ -632,3 +782,54 @@ def reset_password(request, token):
             return redirect('inicioSesion')
 
     return render(request, "reset_password.html", {'usuario': usuario})
+
+@require_http_methods(["GET"])
+def contratos_usuario(request):
+    usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
+
+    if usuario.rol != 2:  # Solo clientes
+        messages.error(request, "Acceso no autorizado.")
+        return redirect('perfilusuario')
+
+    contratos = Postulacion.objects.filter(
+        oferta__cliente=usuario,
+        estado='aceptado',
+        finalizada=False
+    ).select_related('trabajador', 'oferta')
+
+    return render(request, 'contratos/contratos_usuario.html', {
+        'usuario': usuario,
+        'contratos': contratos
+    })
+    
+    
+@require_POST
+def finalizar_postulacion(request, id):
+    usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
+
+    postulacion = get_object_or_404(
+        Postulacion,
+        id=id,
+        oferta__cliente=usuario,
+        estado='aceptado',
+        finalizada=False
+    )
+
+    # Marcar como finalizada
+    postulacion.finalizada = True
+    postulacion.save()
+
+    # Crear mensaje para el trabajador
+    contenido = f"""
+Hola {{nombre}}, el cliente **{usuario.nombre} {usuario.apellido}** ha finalizado el contrato de la oferta **{postulacion.oferta.titulo}**.
+
+Por favor, revisa si los acuerdos fueron cumplidos.
+"""
+    Mensaje.objects.create(
+        emisor=usuario,
+        receptor=postulacion.trabajador,
+        contenido=contenido.strip()
+    )
+
+    messages.success(request, "✅ Contrato finalizado y trabajador notificado.")
+    return redirect('contratos_usuario')

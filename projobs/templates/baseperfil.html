@@ -6,15 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel ProJobs</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Estilos locales -->
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/forms.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/crear_oferta.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/style_crear_oferta.css' %}" />
   <link rel="stylesheet" href="{% static 'css/style_editar_perfil.css' %}" />
   <link rel="stylesheet" href="{% static 'css/perfil_trabajador.css' %}" />
   <link rel="stylesheet" href="{% static 'css/modal_evidencia.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />  
+  
   {% block extra_css %}{% endblock %}
 </head>
+
 <body>
   <header class="topbar">
     <div class="logo">
@@ -23,7 +26,7 @@
     </div>
     <div class="logout-container">
       <div class="notificacion-wrapper" onclick="toggleNotificaciones()" style="position: relative;">
-        <i class="fas fa-bell fa-lg"></i>
+        <i class="fa-solid fa-bell fa-lg"></i>
         {% if cantidad_mensajes_no_leidos > 0 %}
           <span id="notiCount" class="notificacion-badge">{{ cantidad_mensajes_no_leidos }}</span>
         {% endif %}
@@ -35,19 +38,22 @@
 
   <nav class="sidebar">
     {% if usuario.rol == 1 %}
-      <a href="{% url 'admin_usuarios' %}" class="nav-item"><i class="fas fa-users-cog"></i> Administrar usuarios</a>
-      <a href="{% url 'admin_dashboard_graficos' %}" class="nav-item"><i class="fas fa-chart-pie"></i> Dashboard gráficos</a>
-      <a href="{% url 'admin_postulaciones' %}" class="nav-item"><i class="fas fa-tasks"></i> Administrar postulaciones</a>
-      <a href="{% url 'admin_ofertas' %}" class="nav-item"><i class="fas fa-briefcase"></i> Administrar ofertas</a>
-      <a href="{% url 'admin_calificaciones' %}" class="nav-item"><i class="fas fa-star"></i> Administrar calificaciones</a>
-      <a href="{% url 'admin_evidencias' %}" class="nav-item"><i class="fas fa-folder-open"></i> Administrar evidencias</a>
-      <a href="{% url 'admin_chats' %}" class="nav-item"><i class="fas fa-comments"></i> Ver chats</a>
+      <a href="{% url 'admin_usuarios' %}" class="nav-item"><i class="fa-solid fa-users-cog"></i> Administrar usuarios</a>
+      <a href="{% url 'admin_dashboard_graficos' %}" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Dashboard gráficos</a>
+      <a href="{% url 'admin_postulaciones' %}" class="nav-item"><i class="fa-solid fa-tasks"></i> Administrar postulaciones</a>
+      <a href="{% url 'admin_ofertas' %}" class="nav-item"><i class="fa-solid fa-briefcase"></i> Administrar ofertas</a>
+      <a href="{% url 'admin_calificaciones' %}" class="nav-item"><i class="fa-solid fa-star"></i> Administrar calificaciones</a>
+      <a href="{% url 'admin_evidencias' %}" class="nav-item"><i class="fa-solid fa-folder-open"></i> Administrar evidencias</a>
+      <a href="{% url 'admin_chats' %}" class="nav-item"><i class="fa-solid fa-comments"></i> Ver chats</a>
     {% else %}
-      <a href="{% url 'perfilusuario' %}" class="nav-item"><i class="fas fa-user"></i> Mi perfil</a>
-      <a href="{% url 'crear_oferta' %}" class="nav-item"><i class="fas fa-briefcase"></i> Crear ofertas</a>
-      <a href="{% url 'historial_postulaciones' %}" class="nav-item"><i class="fas fa-clock"></i> Historial</a>
+      <a href="{% url 'perfilusuario' %}" class="nav-item"><i class="fa-solid fa-user"></i> Mi perfil</a>
+      <a href="{% url 'crear_oferta' %}" class="nav-item"><i class="fa-solid fa-briefcase"></i> Crear ofertas</a>
+      <a href="{% url 'historial_postulaciones' %}" class="nav-item"><i class="fa-solid fa-clock"></i> Historial</a>
+      {% if usuario.rol == 2 %}
+        <a href="{% url 'contratos_usuario' %}" class="nav-item"><i class="fa-solid fa-file-signature"></i> Contratos</a>
+      {% endif %}
       {% if usuario.rol == 3 %}
-        <a href="{% url 'lista_ofertas' %}" class="nav-item"><i class="fas fa-clipboard-check"></i> Postularme</a>
+        <a href="{% url 'lista_ofertas' %}" class="nav-item"><i class="fa-solid fa-clipboard-check"></i> Postularme</a>
       {% endif %}
     {% endif %}
   </nav>
@@ -62,6 +68,7 @@
     {% endblock %}
   </main>
 
+  <!-- Modal de carga de evidencia -->
   <div id="modalEvidencia" class="modal hidden">
     <div class="modal-contenido">
       <button onclick="cerrarModal()" class="modal-cerrar">&times;</button>
@@ -71,6 +78,8 @@
         <select name="postulacion_id" id="postulacion_id" required>
           {% for p in postulaciones_aceptadas %}
             <option value="{{ p.id }}">{{ p.oferta.titulo }}</option>
+          {% empty %}
+            <option disabled selected>No tienes postulaciones finalizadas</option>
           {% endfor %}
         </select>
 

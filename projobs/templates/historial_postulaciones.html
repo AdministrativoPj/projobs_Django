@@ -21,29 +21,45 @@
               {{ p.trabajador.nombre }} {{ p.trabajador.apellido }}
             </a>
           </p>
+
           <a href="{% url 'chat_con_usuario' p.trabajador.id %}" class="btn-actualizar">Chatear</a>
+
           <form method="post" class="historial-form">
             {% csrf_token %}
             <input type="hidden" name="postulacion_id" value="{{ p.id }}">
-            <select name="estado">
-              <option value="pendiente" {% if p.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
-              <option value="aceptado" {% if p.estado == "aceptado" %}selected{% endif %}>Aceptado</option>
-              <option value="rechazado" {% if p.estado == "rechazado" %}selected{% endif %}>Rechazado</option>
-            </select>
-            <button type="submit" class="btn-actualizar">Actualizar</button>
+            
+            {% if p.finalizada and p.estado == 'aceptado' %}
+              <p><span class="estado estado-finalizado">✅ Finalizado</span></p>
+              <select name="estado" disabled>
+                <option selected>{{ p.estado|capfirst }}</option>
+              </select>
+              <button type="submit" class="btn-actualizar" disabled>Actualizar</button>
+            {% else %}
+              <select name="estado">
+                <option value="pendiente" {% if p.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+                <option value="aceptado" {% if p.estado == "aceptado" %}selected{% endif %}>Aceptado</option>
+                <option value="rechazado" {% if p.estado == "rechazado" %}selected{% endif %}>Rechazado</option>
+              </select>
+              <button type="submit" class="btn-actualizar">Actualizar</button>
+            {% endif %}
           </form>
 
         {% elif usuario.rol == 3 %}
           <p><strong>Cliente:</strong> {{ p.oferta.cliente.nombre }} {{ p.oferta.cliente.apellido }}</p>
           <a href="{% url 'chat_con_usuario' p.oferta.cliente.id %}" class="btn-actualizar">Chatear</a>
+
           <p><strong>Estado:</strong>
-            <span class="estado estado-{{ p.estado }}">{{ p.estado|capfirst }}</span>
+            {% if p.finalizada %}
+              <span class="estado estado-finalizado">Finalizado</span>
+            {% else %}
+              <span class="estado estado-{{ p.estado }}">{{ p.estado|capfirst }}</span>
+            {% endif %}
           </p>
 
           <form method="post" class="historial-form" onsubmit="return confirm('¿Seguro que deseas eliminar esta postulación?');">
             {% csrf_token %}
             <input type="hidden" name="postulacion_id" value="{{ p.id }}">
-            <button type="submit" class="btn-eliminar">🗑️ Eliminar</button>
+            <button type="submit" class="btn-eliminar" {% if p.finalizada %}disabled{% endif %}>🗑️ Eliminar</button>
           </form>
         {% endif %}
       </div>

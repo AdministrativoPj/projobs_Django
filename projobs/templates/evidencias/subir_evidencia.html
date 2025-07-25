@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir Evidencia</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h2>Subir evidencia</h2>
+
+    {% if messages %}
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <label for="postulacion_id">Postulación asociada:</label>
+        <select name="postulacion_id" id="postulacion_id" required>
+            <option value="">Seleccione una</option>
+            {% for p in postulaciones %}
+              <option value="{{ p.id }}">
+                {{ p.oferta.titulo }} - {{ p.oferta.cliente.nombre }} {{ p.oferta.cliente.apellido }}
+              </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="archivo">Archivo:</label>
+        <input type="file" name="archivo" id="archivo" required>
+
+        <br><br>
+
+        <label for="descripcion">Descripción (opcional):</label>
+        <textarea name="descripcion" id="descripcion" rows="4"></textarea>
+
+        <br><br>
+
+        <button type="submit">Subir evidencia</button>
+    </form>
+</body>
+</html>

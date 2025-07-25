@@ -93,13 +93,13 @@ class Postulacion(models.Model):
     fecha_postulacion = models.DateTimeField(auto_now_add=True)
     revisada = models.BooleanField(default=False)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    finalizada = models.BooleanField(default=False)  # <-- NUEVO CAMPO
 
     class Meta:
         unique_together = ('trabajador', 'oferta')
 
     def __str__(self):
         return f"{self.trabajador.nombre} -> {self.oferta.titulo} [{self.estado}]"
-
 
 # -------------------------
 #  Modelo de Mensaje Directo

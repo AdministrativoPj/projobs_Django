@@ -21,6 +21,9 @@ urlpatterns = [
     path('lista_ofertas/', views.lista_ofertas, name='lista_ofertas'),
     path('marcar_revisada/', views.marcar_como_revisada, name='marcar_revisada'),
     path('historial/', views.historial_postulaciones, name='historial_postulaciones'),
+    path('contratos/', views.contratos_usuario, name='contratos_usuario'),
+    path('finalizar_postulacion/<int:id>/', views.finalizar_postulacion, name='finalizar_postulacion'),
+
 
     # Chat
     path('chat/<int:id_usuario>/', views.chat_con_usuario, name='chat_con_usuario'),
@@ -33,7 +36,7 @@ urlpatterns = [
     path('trabajador/<int:id>/', views.perfil_trabajador_detalle, name='perfil_trabajador_detalle'),
 
     # Evidencias
-    path('subir_evidencia/', views.subir_evidencia, name='subir_evidencia'),
+    path('subir_evidencia/', views.subir_evidencia_view, name='subir_evidencia'),
 
     # Admin propio
     path('admin-usuarios/', views.admin_usuarios, name='admin_usuarios'),

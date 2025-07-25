@@ -271,3 +271,15 @@ body {
   z-index: 100;
   font-weight: bold;
 }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-item i {
+  display: inline-block;
+  font-size: 18px;
+  width: 20px;
+  color: white; /* o el color que uses en el texto */
+}

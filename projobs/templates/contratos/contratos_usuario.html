@@ -1,0 +1,153 @@
+{% extends 'baseperfil.html' %}
+
+{% block extra_css %}
+<style>
+  .contratos-container {
+    max-width: 1000px;
+    margin: 100px auto 0 auto;
+    padding: 2rem;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .contrato-card {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .contrato-card:hover {
+    transform: scale(1.01);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  }
+
+  .contrato-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .contrato-titulo {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #02786e;
+  }
+
+  .estado {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    background-color: #2ecc71;
+    color: white;
+    text-transform: capitalize;
+  }
+
+  .contrato-datos p {
+    margin: 4px 0;
+    font-size: 0.95rem;
+    color: #444;
+  }
+
+  .contrato-footer {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .btn-finalizar {
+    background-color: #02786e;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-finalizar:hover {
+    background-color: #025e57;
+  }
+
+  .mensaje-vacio {
+    padding: 1rem;
+    background-color: #e0f7f1;
+    color: #065f46;
+    border-left: 5px solid #00a48a;
+    border-radius: 8px;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .contrato-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .contrato-footer {
+      justify-content: flex-start;
+    }
+
+    .btn-finalizar {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .contrato-titulo {
+      font-size: 1.1rem;
+    }
+
+    .estado {
+      font-size: 0.8rem;
+    }
+
+    .contrato-datos p {
+      font-size: 0.85rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contratos-container">
+  <h2 class="contrato-titulo">📄 Contratos activos</h2>
+
+  {% if contratos %}
+    {% for c in contratos %}
+      <div class="contrato-card">
+        <div class="contrato-header">
+          <div class="contrato-titulo">{{ c.oferta.titulo }}</div>
+          <div class="estado">{{ c.estado }}</div>
+        </div>
+        <div class="contrato-datos">
+          <p><strong>Trabajador:</strong> {{ c.trabajador.nombre }} {{ c.trabajador.apellido }}</p>
+          <p><strong>Fecha de postulación:</strong> {{ c.fecha_postulacion|date:"Y-m-d H:i" }}</p>
+        </div>
+        <div class="contrato-footer">
+          <form method="post" action="{% url 'finalizar_postulacion' c.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-finalizar"><i class="fas fa-flag-checkered"></i> Finalizar</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="mensaje-vacio">No hay postulaciones aceptadas activas.</div>
+  {% endif %}
+</div>
+{% endblock %}

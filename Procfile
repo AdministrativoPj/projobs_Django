@@ -1,0 +1,1 @@
+web: gunicorn projobs_django.wsgi:application
