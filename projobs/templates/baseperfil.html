@@ -6,22 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel ProJobs</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
-
-  <!-- Estilos locales -->
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
   <link rel="stylesheet" href="{% static 'css/style_crear_oferta.css' %}" />
   <link rel="stylesheet" href="{% static 'css/style_editar_perfil.css' %}" />
   <link rel="stylesheet" href="{% static 'css/perfil_trabajador.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/modal_evidencia.css' %}" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />  
-  
+  <link rel="stylesheet" href="{% static 'css/subir_evidencia.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/style_postular_oferta.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   {% block extra_css %}{% endblock %}
 </head>
 
 <body>
   <header class="topbar">
     <div class="logo">
-      <img src="{% static 'img/logotipo.png' %}" alt="Logo" class="logo-img" style="height: 40px;" />
+      <img src="{% static 'img/logotipo.png' %}" alt="Logo" class="logo-img" />
       <span>ProJobs</span>
     </div>
     <div class="logout-container">
@@ -36,7 +34,12 @@
     </div>
   </header>
 
-  <nav class="sidebar">
+  <!-- ÍCONO MENÚ HAMBURGUESA -->
+  <div class="hamburger" onclick="toggleSidebar()">
+    <i class="fa-solid fa-bars"></i>
+  </div>
+
+  <nav class="sidebar" id="sidebar">
     {% if usuario.rol == 1 %}
       <a href="{% url 'admin_usuarios' %}" class="nav-item"><i class="fa-solid fa-users-cog"></i> Administrar usuarios</a>
       <a href="{% url 'admin_dashboard_graficos' %}" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Dashboard gráficos</a>
@@ -51,92 +54,24 @@
       <a href="{% url 'historial_postulaciones' %}" class="nav-item"><i class="fa-solid fa-clock"></i> Historial</a>
       {% if usuario.rol == 2 %}
         <a href="{% url 'contratos_usuario' %}" class="nav-item"><i class="fa-solid fa-file-signature"></i> Contratos</a>
+        <a href="{% url 'ver_trabajadores' %}" class="nav-item"><i class="fa-solid fa-users"></i> Trabajadores</a>
       {% endif %}
       {% if usuario.rol == 3 %}
         <a href="{% url 'lista_ofertas' %}" class="nav-item"><i class="fa-solid fa-clipboard-check"></i> Postularme</a>
+        <a href="{% url 'subir_evidencia' %}" class="nav-item"><i class="fa-solid fa-upload"></i> Subir Evidencia</a>
       {% endif %}
     {% endif %}
   </nav>
 
   <main class="main-content">
     {% block content %}
-    {% if usuario.rol == 3 and postulaciones_aceptadas %}
-      <div class="contenedor-boton-evidencia">
-        <button id="btnSubirEvidencia" class="btn-evidencia">Subir Evidencia 📁</button>
-      </div>
-    {% endif %}
     {% endblock %}
   </main>
 
-  <!-- Modal de carga de evidencia -->
-  <div id="modalEvidencia" class="modal hidden">
-    <div class="modal-contenido">
-      <button onclick="cerrarModal()" class="modal-cerrar">&times;</button>
-      <h2 class="modal-titulo">Cargar Evidencia</h2>
-      <form id="formEvidencia" enctype="multipart/form-data" class="modal-form">
-        <label for="postulacion_id">Postulación asociada:</label>
-        <select name="postulacion_id" id="postulacion_id" required>
-          {% for p in postulaciones_aceptadas %}
-            <option value="{{ p.id }}">{{ p.oferta.titulo }}</option>
-          {% empty %}
-            <option disabled selected>No tienes postulaciones finalizadas</option>
-          {% endfor %}
-        </select>
-
-        <label for="archivo">Archivo:</label>
-        <input type="file" name="archivo" id="archivo" accept=".jpg,.jpeg,.png,.pdf,.docx,.webp" required />
-
-        <label for="descripcion">Descripción:</label>
-        <textarea name="descripcion" id="descripcion" rows="3" placeholder="Describe brevemente la evidencia..."></textarea>
-
-        <button type="submit" class="btn-enviar">Subir</button>
-      </form>
-    </div>
-  </div>
-
   <script>
-    const modal = document.getElementById("modalEvidencia");
-    const btn = document.getElementById("btnSubirEvidencia");
-    const form = document.getElementById("formEvidencia");
-
-    if (btn) btn.onclick = () => modal.classList.remove("hidden");
-
-    function cerrarModal() {
-      modal.classList.add("hidden");
-      form.reset();
-    }
-
-    form.onsubmit = async function (e) {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const response = await fetch("{% url 'subir_evidencia' %}", {
-        method: "POST",
-        headers: { 'X-CSRFToken': getCookie('csrftoken') },
-        body: formData
-      });
-      const result = await response.json();
-      if (result.ok) {
-        alert("✅ Evidencia subida correctamente.");
-        cerrarModal();
-        location.reload();
-      } else {
-        alert("❌ Error: " + (result.error || "No se pudo subir la evidencia."));
-      }
-    };
-
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(name + '=')) {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-          }
-        }
-      }
-      return cookieValue;
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.classList.toggle("active");
     }
 
     async function toggleNotificaciones() {
@@ -170,10 +105,25 @@
         });
 
         if (badge) badge.style.display = "none";
-      } catch {
+      } catch (error) {
         panel.innerHTML = '<div class="noti-item"><em>Error al cargar notificaciones.</em></div>';
         panel.style.display = "block";
       }
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
     }
   </script>
 </body>

@@ -41,85 +41,8 @@
       <p>{{ usuario.get_rol_display }}</p>
     </div>
   </div>
-
-  {% if usuario.rol == 3 %}
-    <div class="contenedor-boton-evidencia">
-      <button id="btnSubirEvidencia" class="btn-evidencia">Subir Evidencia 📁</button>
-    </div>
-  {% endif %}
 </div>
 
-<!-- Modal de carga de evidencia -->
-<div id="modalEvidencia" class="modal hidden">
-  <div class="modal-contenido">
-    <button onclick="cerrarModal()" class="modal-cerrar">&times;</button>
-    <h2 class="modal-titulo">Cargar Evidencia</h2>
-    <form id="formEvidencia" enctype="multipart/form-data" class="modal-form">
-      <label for="postulacion_id">Postulación asociada:</label>
-      <select name="postulacion_id" id="postulacion_id" required>
-        {% for p in postulaciones_aceptadas %}
-          <option value="{{ p.id }}">{{ p.oferta.titulo }}</option>
-        {% endfor %}
-      </select>
-
-      <label for="archivo">Archivo:</label>
-      <input type="file" name="archivo" id="archivo" accept=".jpg,.jpeg,.png,.pdf,.docx,.webp" required>
-
-      <label for="descripcion">Descripción:</label>
-      <textarea name="descripcion" id="descripcion" rows="3" placeholder="Describe brevemente la evidencia..."></textarea>
-
-      <button type="submit" class="btn-enviar">Subir</button>
-    </form>
-  </div>
-</div>
-
-<script>
-  const modal = document.getElementById("modalEvidencia");
-  const btn = document.getElementById("btnSubirEvidencia");
-  const form = document.getElementById("formEvidencia");
-
-  if (btn) {
-    btn.onclick = () => modal.classList.remove("hidden");
-  }
-
-  function cerrarModal() {
-    modal.classList.add("hidden");
-    form.reset();
-  }
-
-  form.onsubmit = async function (e) {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const response = await fetch("{% url 'subir_evidencia' %}", {
-      method: "POST",
-      headers: { 'X-CSRFToken': getCookie('csrftoken') },
-      body: formData
-    });
-    const result = await response.json();
-    if (result.ok) {
-      alert("✅ Evidencia subida correctamente.");
-      cerrarModal();
-      location.reload();
-    } else {
-      alert("❌ Error: " + (result.error || "No se pudo subir la evidencia."));
-    }
-  };
-
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-</script>
 <script>
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('keydown', e => {
@@ -128,7 +51,9 @@
     }
   });
 </script>
+
 {% endblock %}
+
 <style>
 .contenedor-mensajes {
   position: fixed;

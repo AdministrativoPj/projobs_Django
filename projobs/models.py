@@ -46,6 +46,7 @@ class OfertaLaboralIndependiente(models.Model):
 
     rango_pago = models.CharField(max_length=50)
     fecha_limite = models.DateField()
+    max_postulaciones = models.PositiveIntegerField(default=5)  # <-- AÑADE ESTO AQUÍ
 
     PROFESIONES = [
         ('Electricista', 'Electricista'),
@@ -63,6 +64,7 @@ class OfertaLaboralIndependiente(models.Model):
 
     def __str__(self):
         return self.titulo
+
 
 
 # -------------------------

@@ -182,3 +182,18 @@
 
 
 
+.btn-mensaje {
+  display: inline-block;
+  margin: 0.5rem 0 1rem;
+  padding: 8px 14px;
+  background-color: #027829;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.btn-mensaje:hover {
+  background-color: #415a57;
+}

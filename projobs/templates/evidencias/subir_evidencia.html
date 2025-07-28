@@ -1,48 +1,42 @@
+{% extends 'baseperfil.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Subir Evidencia</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <h2>Subir evidencia</h2>
 
-    {% if messages %}
-      <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/subir_evidencia.css' %}">
+{% endblock %}
 
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+{% block content %}
+<div class="subir-evidencia-container">
+  <h2>Subir Evidencia</h2>
 
-        <label for="postulacion_id">Postulación asociada:</label>
-        <select name="postulacion_id" id="postulacion_id" required>
-            <option value="">Seleccione una</option>
-            {% for p in postulaciones %}
-              <option value="{{ p.id }}">
-                {{ p.oferta.titulo }} - {{ p.oferta.cliente.nombre }} {{ p.oferta.cliente.apellido }}
-              </option>
-            {% endfor %}
-        </select>
+  {% if messages %}
+    <div class="contenedor-mensajes">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
-        <br><br>
+  <form method="post" enctype="multipart/form-data" class="form-subir-evidencia">
+    {% csrf_token %}
 
-        <label for="archivo">Archivo:</label>
-        <input type="file" name="archivo" id="archivo" required>
+    <label for="postulacion_id">Selecciona la postulación:</label>
+    <select name="postulacion_id" id="postulacion_id" required>
+      <option value="" disabled selected>-- Selecciona una opción --</option>
+      {% for p in postulaciones %}
+        <option value="{{ p.id }}">{{ p.oferta.titulo }}</option>
+      {% endfor %}
+    </select>
 
-        <br><br>
+    <label for="archivo">Archivo de evidencia:</label>
+    <input type="file" name="archivo" id="archivo" accept=".jpg,.jpeg,.png,.pdf,.docx,.webp" required>
 
-        <label for="descripcion">Descripción (opcional):</label>
-        <textarea name="descripcion" id="descripcion" rows="4"></textarea>
+    <label for="descripcion">Descripción (opcional):</label>
+    <textarea name="descripcion" id="descripcion" rows="4" placeholder="Describe la evidencia..."></textarea>
 
-        <br><br>
-
-        <button type="submit">Subir evidencia</button>
-    </form>
-</body>
-</html>
+    <button type="submit" class="btn-evidencia-submit">Subir Evidencia</button>
+  </form>
+</div>
+{% endblock %}

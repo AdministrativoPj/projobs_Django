@@ -283,3 +283,45 @@ body {
   width: 20px;
   color: white; /* o el color que uses en el texto */
 }
+/* Hamburguesa escondida por defecto */
+.hamburger {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+    background-color: #035c52;
+    color: white;
+    font-size: 1.5rem;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .sidebar {
+    position: absolute;
+    top: 64px;
+    left: -100%;
+    width: 100%;
+    height: auto;
+    background-color: #035c52;
+    transition: left 0.3s ease;
+    z-index: 999;
+  }
+
+  .sidebar.active {
+    left: 0;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .nav-item {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

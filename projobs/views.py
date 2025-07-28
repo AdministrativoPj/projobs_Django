@@ -12,7 +12,8 @@ from django.http import HttpResponseNotFound
 import re
 import uuid
 from django.urls import reverse
-
+from datetime import date
+from django.views.decorators.http import require_GET
 from .models import Usuario, OfertaLaboralIndependiente, MensajeContacto, Postulacion, Mensaje, Calificacion, Evidencia
 
 
@@ -153,7 +154,44 @@ def cerrar_sesion(request):
 # -------------------------
 # Perfil
 # -------------------------
+
+
 def perfilusuario(request):
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return redirect("inicioSesion")
+
+    usuario_obj = get_object_or_404(Usuario, id=usuario_id)
+
+    # Calcular notificaciones no leídas (mensajes + postulaciones según rol)
+    cantidad_mensajes_no_leidos = Mensaje.objects.filter(receptor=usuario_obj, leido=False).count()
+
+    if usuario_obj.rol == 1:
+        cantidad_postulaciones_nuevas = Postulacion.objects.filter(revisada=False).count()
+    elif usuario_obj.rol == 2:
+        cantidad_postulaciones_nuevas = Postulacion.objects.filter(oferta__cliente=usuario_obj, revisada=False).count()
+    elif usuario_obj.rol == 3:
+        cantidad_postulaciones_nuevas = Postulacion.objects.filter(trabajador=usuario_obj, revisada=True).count()
+    else:
+        cantidad_postulaciones_nuevas = 0
+
+    total_notificaciones = cantidad_mensajes_no_leidos + cantidad_postulaciones_nuevas
+
+    # Postulaciones aceptadas y finalizadas (para subir evidencia)
+    postulaciones_aceptadas = Postulacion.objects.filter(
+        trabajador=usuario_obj,
+        estado='aceptado',
+        finalizada=True
+    ).select_related('oferta')
+
+    context = {
+        "usuario": usuario_obj,
+        "postulaciones_aceptadas": postulaciones_aceptadas,
+        "cantidad_mensajes_no_leidos": total_notificaciones
+    }
+
+    return render(request, "perfilusuario.html", context)
+
     usuario_id = request.session.get("usuario_id")  # este es el que realmente guardas
     if not usuario_id:
         return redirect("inicioSesion")
@@ -236,32 +274,80 @@ def editar_perfil(request):
 # Ofertas y postulaciones
 # -------------------------
 
+
+
 def crear_oferta(request):
     usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
+
     if request.method == 'POST':
-        OfertaLaboralIndependiente.objects.create(
-            cliente=usuario,
-            titulo=request.POST.get('titulo'),
-            descripcion=request.POST.get('descripcion'),
-            ubicacion=request.POST.get('ubicacion'),
-            modo_trabajo=request.POST.get('modo_trabajo'),
-            rango_pago=request.POST.get('rango_pago'),
-            fecha_limite=request.POST.get('fecha_limite'),
-            categoria=request.POST.get('categoria'),
-            descripcion_profesion=request.POST.get('descripcion_profesion', '')
-        )
-        messages.success(request, "✅ Oferta publicada exitosamente.")
+        titulo = request.POST.get('titulo', '').strip()
+        descripcion = request.POST.get('descripcion', '').strip()
+        ubicacion = request.POST.get('ubicacion', '').strip()
+        modo_trabajo = request.POST.get('modo_trabajo', '').strip()
+        rango_pago = request.POST.get('rango_pago', '').strip()
+        fecha_limite = request.POST.get('fecha_limite', '').strip()
+        categoria = request.POST.get('categoria', '').strip()
+        descripcion_profesion = request.POST.get('descripcion_profesion', '').strip()
+        max_postulaciones = request.POST.get('max_postulaciones', '5').strip()
+
+        errores = []
+
+        # Validar fecha
+        if fecha_limite:
+            try:
+                fecha_limite_parsed = date.fromisoformat(fecha_limite)
+                if fecha_limite_parsed < date.today():
+                    errores.append("❌ La fecha límite no puede ser anterior a hoy.")
+            except ValueError:
+                errores.append("❌ Formato de fecha no válido.")
+        else:
+            errores.append("❌ Debes seleccionar una fecha límite.")
+
+        # Validar máximo de postulaciones
+        try:
+            max_postulaciones = int(max_postulaciones)
+            if max_postulaciones <= 0:
+                errores.append("❌ El número máximo de postulaciones debe ser mayor a cero.")
+        except ValueError:
+            errores.append("❌ El campo de máximo de postulaciones debe ser un número válido.")
+
+        if errores:
+            for e in errores:
+                messages.error(request, e)
+        else:
+            OfertaLaboralIndependiente.objects.create(
+                cliente=usuario,
+                titulo=titulo,
+                descripcion=descripcion,
+                ubicacion=ubicacion,
+                modo_trabajo=modo_trabajo,
+                rango_pago=rango_pago,
+                fecha_limite=fecha_limite_parsed,
+                categoria=categoria,
+                descripcion_profesion=descripcion_profesion,
+                max_postulaciones=max_postulaciones,
+                estado='abierta'
+            )
+            messages.success(request, "✅ Oferta publicada exitosamente.")
+            return redirect('perfilusuario')
+
     return render(request, 'ofertas/crear_oferta.html', {'usuario': usuario})
 
 
 def lista_ofertas(request):
     usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
+
     if usuario.rol != 3:
         messages.error(request, "Solo los trabajadores pueden ver las ofertas para postularse.")
         return redirect('perfilusuario')
 
     categoria = request.GET.get('categoria')
-    ofertas = OfertaLaboralIndependiente.objects.exclude(cliente=usuario)
+
+  
+    ofertas = OfertaLaboralIndependiente.objects.exclude(cliente=usuario) \
+        .filter(estado='abierta') \
+        .annotate(num_postulaciones=Count('postulaciones'))
+
     if categoria:
         ofertas = ofertas.filter(categoria=categoria).order_by('-fecha_publicacion')
     else:
@@ -270,13 +356,21 @@ def lista_ofertas(request):
     if request.method == 'POST':
         id_oferta = request.POST.get('id_oferta')
         oferta = get_object_or_404(OfertaLaboralIndependiente, id=id_oferta)
+
         if oferta.cliente == usuario:
             messages.error(request, "No puedes postularte a tu propia oferta.")
+        elif oferta.estado != 'abierta':
+            messages.error(request, "Esta oferta ya está cerrada para nuevas postulaciones.")
         elif Postulacion.objects.filter(trabajador=usuario, oferta=oferta).exists():
             messages.warning(request, "Ya estás postulado a esta oferta.")
+        elif Postulacion.objects.filter(oferta=oferta).count() >= oferta.max_postulaciones:
+            oferta.estado = 'cerrada'
+            oferta.save()
+            messages.error(request, "La oferta ha alcanzado el número máximo de postulaciones.")
         else:
             Postulacion.objects.create(trabajador=usuario, oferta=oferta, revisada=False)
             messages.success(request, "Te has postulado correctamente.")
+
         return redirect('lista_ofertas')
 
     return render(request, 'ofertas/lista_ofertas.html', {
@@ -408,18 +502,65 @@ def perfil_trabajador_detalle(request, id):
 def obtener_notificaciones(request):
     usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
     data = []
-    if usuario.rol == 2:
-        data += [{'mensaje': f"{p.trabajador.nombre} se postuló a {p.oferta.titulo}",
-                  'fecha': p.fecha_postulacion.strftime("%Y-%m-%d %H:%M"), 'url': '/historial/'}
-                 for p in Postulacion.objects.filter(oferta__cliente=usuario, revisada=False)]
-    if usuario.rol == 3:
-        data += [{'mensaje': f"Tu postulación a {r.oferta.titulo} fue revisada",
-                  'fecha': r.fecha_postulacion.strftime("%Y-%m-%d %H:%M"), 'url': '/historial/'}
-                 for r in Postulacion.objects.filter(trabajador=usuario, revisada=True)]
-    data += [{'mensaje': f"{m.emisor.nombre} te envió un mensaje",
-              'fecha': m.fecha_envio.strftime("%Y-%m-%d %H:%M"), 'url': f"/chat/{m.emisor.id}/"}
-             for m in Mensaje.objects.filter(receptor=usuario, leido=False)]
+
+    if usuario.rol == 1:  # Admin
+        nuevas_postulaciones = Postulacion.objects.filter(revisada=False)
+        nuevos_mensajes = Mensaje.objects.filter(receptor=usuario, leido=False)
+
+        for p in nuevas_postulaciones:
+            data.append({
+                'mensaje': f"{p.trabajador.nombre} se postuló a '{p.oferta.titulo}'",
+                'fecha': p.fecha_postulacion.strftime("%Y-%m-%d %H:%M"),
+                'url': '/admin-postulaciones/'
+            })
+
+        for m in nuevos_mensajes:
+            data.append({
+                'mensaje': f"Nuevo mensaje de {m.emisor.nombre}",
+                'fecha': m.fecha_envio.strftime("%Y-%m-%d %H:%M"),
+                'url': f"/admin-chats/{m.emisor.id}/{usuario.id}/"
+            })
+
+    if usuario.rol == 2:  # Cliente
+        nuevas_postulaciones = Postulacion.objects.filter(oferta__cliente=usuario, revisada=False)
+
+        for p in nuevas_postulaciones:
+            data.append({
+                'mensaje': f"{p.trabajador.nombre} se postuló a '{p.oferta.titulo}'",
+                'fecha': p.fecha_postulacion.strftime("%Y-%m-%d %H:%M"),
+                'url': '/historial/'
+            })
+
+        nuevos_mensajes = Mensaje.objects.filter(receptor=usuario, leido=False)
+        for m in nuevos_mensajes:
+            data.append({
+                'mensaje': f"Nuevo mensaje de {m.emisor.nombre}",
+                'fecha': m.fecha_envio.strftime("%Y-%m-%d %H:%M"),
+                'url': f"/chat/{m.emisor.id}/"
+            })
+
+    if usuario.rol == 3:  # Trabajador
+        revisadas = Postulacion.objects.filter(trabajador=usuario, revisada=True)
+        for r in revisadas:
+            data.append({
+                'mensaje': f"Tu postulación a '{r.oferta.titulo}' fue revisada.",
+                'fecha': r.fecha_postulacion.strftime("%Y-%m-%d %H:%M"),
+                'url': '/historial/'
+            })
+
+        nuevos_mensajes = Mensaje.objects.filter(receptor=usuario, leido=False)
+        for m in nuevos_mensajes:
+            data.append({
+                'mensaje': f"Nuevo mensaje de {m.emisor.nombre}",
+                'fecha': m.fecha_envio.strftime("%Y-%m-%d %H:%M"),
+                'url': f"/chat/{m.emisor.id}/"
+            })
+
+    # Ordenar por fecha descendente (opcional)
+    data.sort(key=lambda x: x['fecha'], reverse=True)
+
     return JsonResponse({'notificaciones': data})
+
 
 
 @require_POST
@@ -515,7 +656,6 @@ def subir_evidencia_view(request):
         'usuario': trabajador,
         'postulaciones': postulaciones_finalizadas
     })
-
 
 # -------------------------
 # Admin
@@ -833,3 +973,25 @@ Por favor, revisa si los acuerdos fueron cumplidos.
 
     messages.success(request, "✅ Contrato finalizado y trabajador notificado.")
     return redirect('contratos_usuario')
+
+
+@require_GET
+def ver_trabajadores(request):
+    usuario = get_object_or_404(Usuario, id=request.session.get('usuario_id'))
+
+    if usuario.rol != 2:
+        return redirect('perfilusuario')
+
+    query = request.GET.get("q", "")
+    trabajadores = Usuario.objects.filter(rol=3)
+
+    if query:
+        trabajadores = trabajadores.filter(
+            Q(nombre__icontains=query) | Q(apellido__icontains=query)
+        )
+
+    return render(request, "clientes/ver_trabajadores.html", {
+        "usuario": usuario,
+        "trabajadores": trabajadores,
+        "q": query
+    })

@@ -14,6 +14,7 @@ urlpatterns = [
     path('perfiltrabajador/', views.perfiltrabajador, name='perfiltrabajador'),
     path('recuperar-password/', views.recuperar_password, name='recuperar_password'),
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
+    path('trabajadores/', views.ver_trabajadores, name='ver_trabajadores'),
 
 
     # Ofertas y postulaciones

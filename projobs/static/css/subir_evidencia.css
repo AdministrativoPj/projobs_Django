@@ -1,0 +1,121 @@
+.subir-evidencia-container {
+  max-width: 800px;
+  margin: 3rem auto;
+  background-color: #ffffff;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.subir-evidencia-container h2 {
+  text-align: center;
+  color: #02786e;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.form-subir-evidencia {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem 2rem;
+  align-items: center;
+}
+
+.form-subir-evidencia label {
+  font-weight: bold;
+  color: #02786e;
+  font-size: 1.1rem;
+}
+
+.form-subir-evidencia select,
+.form-subir-evidencia input[type="file"],
+.form-subir-evidencia textarea {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #f7f9fa;
+}
+
+.form-subir-evidencia textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.btn-evidencia-submit {
+  grid-column: 2;
+  background-color: #02786e;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  justify-self: start;
+}
+
+.btn-evidencia-submit:hover {
+  background-color: #035c52;
+}
+
+.alert {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+@media (max-width: 768px) {
+  .subir-evidencia-container {
+    padding: 2rem 1rem;
+    margin: 1rem;
+  }
+
+  .form-subir-evidencia {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-evidencia-submit {
+    grid-column: auto;
+    width: 100%;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .subir-evidencia-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-subir-evidencia label {
+    font-size: 1rem;
+  }
+
+  .form-subir-evidencia select,
+  .form-subir-evidencia input[type="file"],
+  .form-subir-evidencia textarea {
+    font-size: 0.95rem;
+  }
+
+  .btn-evidencia-submit {
+    padding: 0.6rem;
+  }
+}

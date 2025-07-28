@@ -1,5 +1,6 @@
 {% extends 'baseperfil.html' %}
 {% load static %}
+
 {% block content %}
 <div class="perfil-trabajador-box">
   <h2>Perfil del Trabajador</h2>
@@ -12,7 +13,7 @@
     {% endif %}
     <div>
       <h3>{{ trabajador.nombre }} {{ trabajador.apellido }}</h3>
-    
+      <a href="{% url 'chat_con_usuario' trabajador.id %}" class="btn-mensaje">💬 Enviar mensaje</a>
       <p><strong>Calificación promedio:</strong> 
         <span class="estrellas-promedio">
           {% for i in "12345" %}
@@ -72,14 +73,112 @@
         </div>
       {% endfor %}
     </div>
-
     {% if calificaciones|length > 3 %}
       <button id="verMasBtn" onclick="toggleComentarios()">▼ Ver más</button>
     {% endif %}
   {% else %}
     <p>No hay comentarios aún.</p>
   {% endif %}
+
+  <hr>
+
+  <h3>Evidencias del trabajador:</h3>
+  {% if trabajador.evidencia_set.all %}
+    <div class="grid-evidencias">
+      {% for ev in trabajador.evidencia_set.all %}
+        <div class="evidencia-item" onclick="mostrarEvidencia('{{ ev.archivo.url }}', `{{ ev.descripcion|default:"Sin descripción" }}`, '{{ ev.fecha|date:"Y-m-d H:i" }}')">
+          <img src="{{ ev.archivo.url }}" alt="Evidencia" class="miniatura-evidencia">
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Este trabajador aún no ha subido evidencias.</p>
+  {% endif %}
+
+  <!-- Modal para evidencias -->
+  <div id="modalVistaEvidencia" class="modal hidden">
+    <div class="modal-contenido">
+      <button onclick="cerrarModalEvidencia()" class="modal-cerrar">&times;</button>
+      <img id="imagenAmpliada" src="" alt="Vista ampliada" class="imagen-ampliada" />
+      <p id="comentarioEvidencia" class="comentario-evidencia"></p>
+      <p id="fechaEvidencia" class="fecha-evidencia"></p>
+    </div>
+  </div>
 </div>
+
+<style>
+  .grid-evidencias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .evidencia-item {
+    width: 120px;
+    height: 120px;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .miniatura-evidencia {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .miniatura-evidencia:hover {
+    transform: scale(1.05);
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  #modalVistaEvidencia {
+    position: fixed;
+    top: 0; left: 0;
+    right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.8);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #modalVistaEvidencia.modal-contenido {
+    display: flex;
+  }
+
+  #modalVistaEvidencia .modal-contenido {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .imagen-ampliada {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
+
+  .comentario-evidencia {
+    font-style: italic;
+    color: #444;
+    margin-bottom: 0.5rem;
+  }
+
+  .fecha-evidencia {
+    font-size: 0.9rem;
+    color: #777;
+  }
+</style>
 
 <script>
   function toggleComentarios() {
@@ -102,8 +201,24 @@
       e.style.display = i < 3 ? 'block' : 'none';
     });
   };
-</script>
-<script>
+
+  function mostrarEvidencia(url, comentario, fecha) {
+    const modal = document.getElementById('modalVistaEvidencia');
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+
+    document.getElementById('imagenAmpliada').src = url;
+    document.getElementById('comentarioEvidencia').innerText = comentario;
+    document.getElementById('fechaEvidencia').innerText = '📅 ' + fecha;
+  }
+
+  function cerrarModalEvidencia() {
+    const modal = document.getElementById('modalVistaEvidencia');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    document.getElementById('imagenAmpliada').src = '';
+  }
+
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('keydown', e => {
     if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || (e.ctrlKey && e.key === "U")) {

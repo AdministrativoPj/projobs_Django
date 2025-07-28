@@ -1,0 +1,54 @@
+{% extends 'baseperfil.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ver_trabajadores.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="trabajadores-container">
+  <h2 class="titulo-seccion">👷‍♂️ Buscar trabajadores disponibles</h2>
+
+  <input
+    type="text"
+    id="buscador"
+    placeholder="🔎 Escribe el nombre del trabajador..."
+    value="{{ q }}"
+  />
+
+  <div id="lista-trabajadores">
+    {% if trabajadores %}
+      {% for t in trabajadores %}
+        <div class="card-trabajador">
+          <div class="info-trabajador">
+            <strong>{{ t.nombre }} {{ t.apellido }}</strong><br>
+            <span class="correo">{{ t.correo }}</span>
+          </div>
+          <a href="{% url 'perfil_trabajador_detalle' t.id %}" class="btn-ver">Ver perfil</a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No se encontraron trabajadores.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById('buscador');
+  const lista = document.getElementById('lista-trabajadores');
+
+  input.addEventListener('input', async () => {
+    const q = input.value.trim();
+    const response = await fetch(`/trabajadores/?q=${encodeURIComponent(q)}`);
+    const html = await response.text();
+
+    // Reemplaza solo la parte de los trabajadores
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    const nuevos = temp.querySelector('#lista-trabajadores');
+    if (nuevos) {
+      lista.innerHTML = nuevos.innerHTML;
+    }
+  });
+</script>
+{% endblock %}
